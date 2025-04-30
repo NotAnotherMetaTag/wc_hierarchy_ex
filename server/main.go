@@ -79,9 +79,14 @@ func buildOrgChart() []Employee {
 
 func buildHierarchy(emp Employee, reports map[int][]Employee, visited map[int]bool) Employee {
 	if visited[emp.ID] {
-		// prevent circular references from blowing up our app
-		emp.Reports = nil
-		return emp
+		// prevent circular ref from blowing up our app
+		return Employee{
+			ID:        emp.ID,
+			Name:      emp.Name,
+			Title:     emp.Title,
+			ManagerID: emp.ManagerID,
+			Reports:   nil,
+		}
 	}
 	visited[emp.ID] = true
 
@@ -93,6 +98,10 @@ func buildHierarchy(emp Employee, reports map[int][]Employee, visited map[int]bo
 	// make a new slice to assign the results to
 	var resultChildren []Employee
 	for _, child := range children {
+		if visited[child.ID] {
+			continue // skip appending child if circular relationship
+		}
+
 		built := buildHierarchy(child, reports, visited)
 		resultChildren = append(resultChildren, built)
 	}
